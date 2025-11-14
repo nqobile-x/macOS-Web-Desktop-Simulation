@@ -14,7 +14,13 @@ The simulation demonstrates front‑end engineering, UI/UX design, and system in
 - **Design & UX**: Faithfully mirrors macOS aesthetics with responsive layouts and interactive elements  
 - **Technology**: Built using HTML, CSS, and JavaScript — lightweight and portable  
 - **Accessibility**: Runs directly in the browser, no installation required  
-- **Customizable**: Extendable with themes, icons, and simulated applications  
+- **Customizable**: Extendable with themes, icons, and simulated applications
+
+https://github.com/user-attachments/assets/1b3bdbd2-77a4-454a-bc4e-b5413ba53559
+
+
+-  <img width="1352" height="641" alt="Screenshot 2025-11-15 011002" src="https://github.com/user-attachments/assets/d247367c-7a68-4502-8ddd-cb60bbfe2656" />
+
 - **Educational Value**: Useful for learning UI/UX principles, front‑end workflows, and system simulations  
 
 ---
