@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>macOS Web Desktop</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Using Inter font, which is very similar to Apple's default */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Sonoma-style wallpaper gradient */
+            background-image: linear-gradient(to top right, #f7c9a3 0%, #e8a9d3 20%, #d28fe2 40%, #a27de2 60%, #7c6ee0 80%, #5d5ee0 100%);
+            background-size: cover;
+            background-repeat: no-repeat;
+            overflow: hidden; /* No scrollbars */
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Helper class to prevent text selection while dragging */
+        .no-select {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* Window draggable handle */
+        .window-handle {
+            cursor: grab;
+        }
+        .window-handle:active {
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body class="relative w-full h-screen overflow-hidden">
+
+    <!-- Desktop Area -->
+    <div id="desktop" class="w-full h-full">
+
+        <!-- Top Menu Bar -->
+        <header class="absolute top-0 left-0 right-0 h-7 bg-white/30 backdrop-blur-md shadow-sm z-50 flex items-center justify-between px-4 text-black text-sm font-medium">
+            <!-- Left Side (Apple Logo, Menus) -->
+            <div class="flex items-center space-x-4">
+                <!-- Apple Logo SVG -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-apple" viewBox="0 0 16 16">
+                    <path d="M11.182.008C10.148-.03 9.07.258 8.08.64a4.58 4.58 0 0 0-1.848 1.484c-.47.625-.85 1.346-1.122 2.132C4.332 6.136 5.067 7.6 5.92 9.014c.82 1.358 1.62 2.753 2.873 2.753s1.868-.93 2.68-2.022C12.32 8.44 12.005 6.68 11.182.008ZM8.08 1.135c.922-.32 1.815-.35 2.628-.08C11.53.94 11.9 1.7 12.043 2.3c.123.5-.03 1.05-.3 1.5l-.23.36c-1.03.62-2.12.5-3.08-.23Z"/>
+                    <path d="M11.182.008C9.69 0 7.85.93 6.9 2.128c-.91 1.16-.95 3.03-.4 4.63C7.012 8.27 7.8 9.1 8.852 9.1c1.03 0 1.76-.82 2.303-1.84C11.72 6.202 11.9 4.35 11.182.008Z"/>
+                </svg>
+                <span class="font-bold">App</span>
+                <span>File</span>
+                <span>Edit</span>
+                <span>View</span>
+                <span>Window</span>
+                <span>Help</span>
+            </div>
+            <!-- Right Side (Clock) -->
+            <div class="flex items-center space-x-4">
+                <span id="clock" class="text-xs"></span>
+            </div>
+        </header>
+
+        <!-- "Notes" Window (Initially Hidden) -->
+        <div id="notes-window" class="hidden absolute top-1/4 left-1/4 w-96 h-80 bg-white/70 backdrop-blur-lg rounded-xl shadow-2xl overflow-hidden" style="resize: both;">
+            <!-- Title Bar -->
+            <div class="window-handle h-8 w-full flex items-center px-3 justify-start space-x-2 bg-gray-200/50">
+                <!-- Traffic Lights -->
+                <div class="flex space-x-1.5">
+                    <button id="close-btn" class="w-3 h-3 bg-red-500 rounded-full hover:bg-red-600"></button>
+                    <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                </div>
+                <span class="text-sm text-gray-800">Notes</span>
+            </div>
+            <!-- Window Content -->
+            <div class="w-full h-full p-2">
+                <textarea class="w-full h-full p-2 bg-transparent text-gray-900 outline-none border-none resize-none" style="height: calc(100% - 2rem);" placeholder="My new note..."></textarea>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Dock -->
+    <footer class="absolute bottom-4 left-1/2 -translate-x-1/2 flex justify-center items-end space-x-2 p-2 bg-white/30 backdrop-blur-md rounded-2xl shadow-lg">
+        <!-- Finder Icon -->
+        <div class="w-16 h-16 bg-blue-500 rounded-xl flex items-center justify-center text-4xl cursor-pointer transition-all hover:scale-110 hover:-translate-y-2">
+            😊
+        </div>
+        <!-- Notes Icon -->
+        <button id="notes-icon" class="w-16 h-16 bg-yellow-300 rounded-xl flex items-center justify-center text-4xl cursor-pointer transition-all hover:scale-110 hover:-translate-y-2">
+            📝
+        </button>
+        <!-- Mail Icon -->
+        <div class="w-16 h-16 bg-blue-400 rounded-xl flex items-center justify-center text-4xl cursor-pointer transition-all hover:scale-110 hover:-translate-y-2">
+            📧
+        </div>
+        <!-- Settings Icon -->
+        <div class="w-16 h-16 bg-gray-500 rounded-xl flex items-center justify-center text-4xl cursor-pointer transition-all hover:scale-110 hover:-translate-y-2">
+            ⚙️
+        </div>
+    </footer>
+
+    <script>
+        // --- Clock Functionality ---
+        const clockElement = document.getElementById('clock');
+
+        function updateClock() {
+            const now = new Date();
+            const options = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            clockElement.textContent = now.toLocaleDateString('en-US', options);
+        }
+        setInterval(updateClock, 1000);
+        updateClock(); // Initial call
+
+        // --- Window Functionality ---
+        const notesWindow = document.getElementById('notes-window');
+        const notesIcon = document.getElementById('notes-icon');
+        const closeBtn = document.getElementById('close-btn');
+
+        // Open the window
+        notesIcon.addEventListener('click', () => {
+            notesWindow.classList.remove('hidden');
+        });
+
+        // Close the window
+        closeBtn.addEventListener('click', () => {
+            notesWindow.classList.add('hidden');
+        });
+
+        // --- Draggable Window Logic ---
+        function makeDraggable(windowElement) {
+            let offsetX, offsetY;
+            let isDragging = false;
+            const handle = windowElement.querySelector('.window-handle');
+
+            handle.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                // Calculate offset from top-left corner
+                offsetX = e.clientX - windowElement.getBoundingClientRect().left;
+                offsetY = e.clientY - windowElement.getBoundingClientRect().top;
+                
+                handle.classList.add('grabbing');
+                document.body.classList.add('no-select'); // Prevent text selection
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+
+                // Calculate new position
+                let newX = e.clientX - offsetX;
+                let newY = e.clientY - offsetY;
+
+                // Constrain to viewport
+                const viewportWidth = document.documentElement.clientWidth;
+                const viewportHeight = document.documentElement.clientHeight;
+
+                newX = Math.max(0, Math.min(newX, viewportWidth - windowElement.offsetWidth));
+                newY = Math.max(0, Math.min(newY, viewportHeight - windowElement.offsetHeight));
+
+                windowElement.style.left = `${newX}px`;
+                windowElement.style.top = `${newY}px`;
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                handle.classList.remove('grabbing');
+                document.body.classList.remove('no-select');
+            });
+        }
+
+        makeDraggable(notesWindow);
+    </script>
+</body>
+</html>
